@@ -1,0 +1,9 @@
+
+[Unit]
+Description=Pi-hole DNS Analytics Collector
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/matvuck/pihole-analytics
+ExecStart=/home/matvuck/pihole-analytics/.venv/bin/python /home/matvuck/pihole-analytics/collector.py
+TimeoutStartSec=60
