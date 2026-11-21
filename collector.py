@@ -4,18 +4,24 @@ from  urllib.error import HTTPError
 from database import initialize_database, insert_snapshot
 from pihole_client import authenticate, get_dns_summary, logout
 import logging
+from logging.handlers import RotatingFileHandler
 
 from pathlib import Path
 
 LOG_DIR = Path(__file__).resolve().parent / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(LOG_DIR / "collector.log"),
+        RotatingFileHandler(
+            LOG_DIR / "collector.log",
+            maxBytes=1_000_000,
+            backupCount=3,
+        ),
     ],
 )
 
