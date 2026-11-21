@@ -51,7 +51,7 @@ def validate_utc_timestamp(value):
 
     return parsed.astimezone(timezone.utc)
 
-    
+
 def get_snapshot_history(start_utc, end_utc):
     """Return DNS snapshots within a UTC time range."""
 
@@ -87,4 +87,3 @@ def get_snapshot_history(start_utc, end_utc):
         ).fetchall()
 
     return [dict(row) for row in rows]
-

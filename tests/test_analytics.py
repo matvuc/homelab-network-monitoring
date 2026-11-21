@@ -59,7 +59,7 @@ class TestAnalytics(unittest.TestCase):
     def test_rejects_invalid_limit(self):
         with self.assertRaises(ValueError):
             get_recent_blocking_rates(0)
-    
+
     def test_handles_zero_total_queries(self):
         with closing(sqlite3.connect(self.db_path)) as conn, conn:
             conn.execute(
@@ -83,7 +83,7 @@ class TestAnalytics(unittest.TestCase):
 
         self.assertEqual(results, [])
 
-    
+
     def test_history_filters_time_range(self):
         results = get_snapshot_history(
             "2026-11-21T10:05:00+00:00",
@@ -110,7 +110,7 @@ class TestAnalytics(unittest.TestCase):
                 "2026-11-21T10:00:00+00:00",
             )
 
-    
+
     def test_history_rejects_invalid_timestamp(self):
         with self.assertRaises(ValueError):
             get_snapshot_history(
@@ -134,4 +134,3 @@ class TestAnalytics(unittest.TestCase):
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0]["total_queries"], 200)
         self.assertEqual(results[1]["total_queries"], 400)
-
