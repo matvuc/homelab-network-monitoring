@@ -1,0 +1,7 @@
+[Unit]
+Description=HomeLab SQLite Database Backup
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/matvuck/pihole-analytics
+ExecStart=/home/matvuck/pihole-analytics/.venv/bin/python /home/matvuck/pihole-analytics/backup.py

@@ -1,0 +1,14 @@
+[Unit]
+Description=HomeLab DNS Analytics Dashboard
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/matvuck/pihole-analytics
+ExecStart=/home/matvuck/pihole-analytics/.venv/bin/uvicorn api:app --host 127.0.0.1 --port 8000
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

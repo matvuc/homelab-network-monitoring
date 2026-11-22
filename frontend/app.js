@@ -28,10 +28,23 @@ async function loadDnsOverview() {
                 ? "N/A"
                 : `${latest.block_percentage.toFixed(2)}%`;
 
-        const collectedAt = new Date(latest.collected_at_utc);
+     const collectedAt = new Date(latest.collected_at_utc);
 
-        status.textContent =
-            `Last collected: ${collectedAt.toLocaleString()}`;
+	const ageMinutes = (Date.now() - collectedAt.getTime()) / 60000;
+
+	let freshness;
+
+	if (ageMinutes < 0) {
+    	freshness = "CLOCK ERROR";
+	} else if (ageMinutes < 10) {
+	    freshness = "FRESH";
+	} else if (ageMinutes <= 15) {
+    		freshness = "DELAYED";
+	} else {
+    freshness = "STALE";
+}
+
+	status.textContent = `Last collected: ${collectedAt.toLocaleString()} | ${freshness}`;
 
     } catch (error) {
         console.error("Failed to load DNS statistics:", error);
@@ -83,7 +96,12 @@ const response = await fetch(
 
         const canvas = document.getElementById("blocking-chart");
 
-        new Chart(canvas, {
+        const existingChart = Chart.getChart(canvas);
+
+	if (existingChart) {
+    	existingChart.destroy();}
+
+	new Chart(canvas, {
             type: "line",
             data: {
                 labels: labels,
@@ -140,3 +158,9 @@ const response = await fetch(
 }
 
 loadBlockingChart();
+
+
+setInterval(() => {
+    loadDnsOverview();
+    loadBlockingChart();
+}, 60 * 1000);
