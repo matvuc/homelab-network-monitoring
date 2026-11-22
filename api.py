@@ -6,8 +6,24 @@ from analytics import (
 )
 from datetime import timedelta
 
+from pathlib import Path
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI()
 
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
+app.mount(
+    "/static",
+    StaticFiles(directory=FRONTEND_DIR),
+    name="static",
+)
+
+@app.get("/dashboard")
+def dashboard():
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 @app.get("/health")
 def health_check():

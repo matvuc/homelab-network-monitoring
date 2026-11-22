@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HomeLab | Network Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+    <script src="/static/app.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <h1>HomeLab Network Dashboard</h1>
+        <p>Raspberry Pi DNS Monitoring Platform</p>
+    </header>
+
+    <main>
+        <section id="dns-overview">
+    <h2>DNS / Latest Snapshot</h2>
+
+    <div class="metrics">
+        <div class="metric">
+            <span class="metric-label">TOTAL QUERIES</span>
+            <strong id="total-queries">—</strong>
+        </div>
+
+        <div class="metric">
+            <span class="metric-label">BLOCKED QUERIES</span>
+            <strong id="blocked-queries">—</strong>
+        </div>
+
+        <div class="metric">
+            <span class="metric-label">BLOCK RATE</span>
+            <strong id="block-percentage">—</strong>
+        </div>
+    </div>
+
+    <p id="snapshot-time">Waiting for DNS data...</p>
+    <p class="metric-note">Pi-hole rolling-window statistics sampled by the collector.</p>
+</section>
+<section id="dns-history">
+    <h2>DNS / Blocking History</h2>
+
+    <p>Blocking percentage across collected DNS snapshots.</p>
+
+    <div class="chart-container">
+        <canvas id="blocking-chart"></canvas>
+    </div>
+
+    <p id="chart-status">Waiting for historical data...</p>
+</section>
+    </main>
+</body>
+</html>
