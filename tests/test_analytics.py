@@ -5,7 +5,6 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 from contextlib import closing
-from analytics import get_recent_blocking_rates
 from analytics import get_recent_blocking_rates, get_snapshot_history
 
 class TestAnalytics(unittest.TestCase):
@@ -134,3 +133,37 @@ class TestAnalytics(unittest.TestCase):
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0]["total_queries"], 200)
         self.assertEqual(results[1]["total_queries"], 400)
+
+    def test_history_limits_results_to_1000(self):
+        from datetime import datetime, timedelta, timezone
+
+        start = "2026-11-21T00:00:00+00:00"
+        end = "2026-11-21T23:59:59+00:00"
+
+        base_time = datetime(2026, 11, 21, tzinfo=timezone.utc)
+
+        rows = [
+            (
+                (base_time + timedelta(minutes=i)).isoformat(),
+                1000,
+                200,
+            )
+            for i in range(1001)
+        ]
+
+        with closing(sqlite3.connect(self.db_path)) as conn, conn:
+            conn.executemany(
+                """
+                INSERT INTO dns_snapshots (
+                    collected_at_utc,
+                    total_queries,
+                    blocked_queries
+                )
+                VALUES (?, ?, ?)
+                """,
+                rows,
+            )
+
+        results = get_snapshot_history(start, end)
+
+        self.assertEqual(len(results), 1000)
