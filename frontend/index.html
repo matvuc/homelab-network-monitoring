@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>HomeLab | Network Dashboard</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css?v=4">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
-    <script src="/static/app.js" defer></script>
+    <script src="/static/heatmap.js?v=4" defer></script>
+    <script src="/static/app.js?v=4" defer></script>
 </head>
 
 <body>
@@ -40,6 +41,7 @@
     <p id="snapshot-time">Waiting for DNS data...</p>
     <p class="metric-note">Pi-hole rolling-window statistics sampled by the collector.</p>
 </section>
+<div class="chart-grid">
 <section id="dns-history">
     <h2>DNS / Blocking History</h2>
 
@@ -51,6 +53,52 @@
 
     <p id="chart-status">Waiting for historical data...</p>
 </section>
+
+<section id="dns-heatmap">
+    <h2>DNS / Activity Heatmap</h2>
+    <p>Hourly aggregates across seven calendar days.</p>
+
+    <div class="heatmap-controls">
+        <label for="heatmap-metric">Metric</label>
+
+        <select id="heatmap-metric">
+            <option value="blocking_rate">
+                Average blocking rate
+            </option>
+            <option value="query_volume">
+                Average rolling query volume
+            </option>
+            <option value="snapshot_count">
+                Stored snapshot count
+            </option>
+        </select>
+    </div>
+
+    <p class="metric-note">
+        Timezone: America/Chicago
+    </p>
+
+    <div class="heatmap-scroll">
+        <div id="heatmap-grid"></div>
+    </div>
+
+    <div id="heatmap-legend"></div>
+
+    <p id="heatmap-detail" aria-live="polite">
+        Select an hourly cell to inspect its data.
+    </p>
+
+    <p id="heatmap-status" role="status">
+        Waiting for heatmap data...
+    </p>
+
+    <p class="metric-note">
+        Based on sampled rolling-window statistics,
+        not actual hourly DNS traffic.
+    </p>
+</section>
+
+</div>
     </main>
 </body>
 </html>

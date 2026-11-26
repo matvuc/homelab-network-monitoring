@@ -160,7 +160,10 @@ const response = await fetch(
 loadBlockingChart();
 
 
+loadDnsHeatmap();
+
 setInterval(() => {
     loadDnsOverview();
     loadBlockingChart();
+    loadDnsHeatmap();
 }, 60 * 1000);
