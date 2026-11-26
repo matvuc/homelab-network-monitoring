@@ -2,6 +2,7 @@ from fastapi import FastAPI, Query, HTTPException
 from analytics import (
     get_recent_blocking_rates,
     get_snapshot_history,
+    get_dns_heatmap,
     validate_utc_timestamp,
 )
 from datetime import timedelta
@@ -53,3 +54,10 @@ def snapshot_history(start_utc: str, end_utc: str):
             status_code=422,
             detail=str(error),
         ) from error
+
+
+
+@app.get("/api/dns/heatmap")
+def dns_heatmap():
+    """Return seven calendar days of hourly DNS analytics."""
+    return get_dns_heatmap()

@@ -146,3 +146,124 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(response.json(), [])
 
         mock_get_history.assert_called_once_with(start, end)
+
+    def _request_heatmap(self, now, rows=()):
+        import sqlite3
+        import tempfile
+
+        from contextlib import closing
+        from datetime import datetime
+        from pathlib import Path
+        from database import SCHEMA_PATH
+
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "test.db"
+
+            with closing(sqlite3.connect(db_path)) as conn, conn:
+                conn.executescript(SCHEMA_PATH.read_text())
+
+                conn.executemany(
+                    """
+                    INSERT INTO dns_snapshots
+                    (collected_at_utc, total_queries, blocked_queries)
+                    VALUES (?, ?, ?)
+                    """,
+                    rows,
+                )
+
+            with patch("analytics.DB_PATH", db_path):
+                with patch(
+                    "analytics.datetime", wraps=datetime
+                ) as mock_datetime:
+                    mock_datetime.now.return_value = (
+                        datetime.fromisoformat(now)
+                    )
+
+                    return self.client.get("/api/dns/heatmap")
+
+    def test_heatmap_endpoint(self):
+        response = self._request_heatmap(
+            "2026-11-26T00:30:00+00:00",
+            [
+                ("2026-11-25T23:05:00+00:00", 100, 10),
+                ("2026-11-25T23:10:00+00:00", 200, 40),
+            ],
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+
+        self.assertEqual(data["timezone"], "America/Chicago")
+        self.assertEqual(len(data["dates"]), 7)
+        self.assertEqual(len(data["hours"]), 168)
+
+        self.assertEqual(
+            data["generated_at_utc"],
+            "2026-11-26T00:30:00+00:00",
+        )
+
+        observed = next(
+            hour for hour in data["hours"]
+            if hour["status"] == "observed"
+        )
+
+        self.assertEqual(observed["local_date"], "2026-11-25")
+        self.assertEqual(observed["local_hour"], 17)
+        self.assertEqual(observed["snapshot_count"], 2)
+        self.assertEqual(observed["valid_blocking_samples"], 2)
+        self.assertAlmostEqual(
+            observed["avg_block_percentage"], 15.0
+        )
+        self.assertAlmostEqual(
+            observed["avg_rolling_queries"], 150.0
+        )
+
+    def test_heatmap_endpoint_empty_database(self):
+        response = self._request_heatmap(
+            "2026-11-26T00:30:00+00:00"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+
+        self.assertEqual(len(data["dates"]), 7)
+        self.assertEqual(len(data["hours"]), 168)
+
+        missing = next(
+            hour for hour in data["hours"]
+            if hour["status"] == "missing"
+        )
+
+        future = next(
+            hour for hour in data["hours"]
+            if hour["status"] == "future"
+        )
+
+        self.assertEqual(missing["snapshot_count"], 0)
+        self.assertIsNone(missing["avg_block_percentage"])
+        self.assertIsNone(missing["avg_rolling_queries"])
+
+        self.assertIsNone(future["snapshot_count"])
+        self.assertIsNone(future["avg_block_percentage"])
+        self.assertIsNone(future["avg_rolling_queries"])
+
+    def test_heatmap_endpoint_dst_interval_counts(self):
+        cases = [
+            ("2026-03-08T18:00:00+00:00", 167),
+            ("2026-11-01T18:00:00+00:00", 169),
+        ]
+
+        for now, expected_hours in cases:
+            with self.subTest(now=now):
+                response = self._request_heatmap(now)
+
+                self.assertEqual(response.status_code, 200)
+
+                data = response.json()
+
+                self.assertEqual(len(data["dates"]), 7)
+                self.assertEqual(
+                    len(data["hours"]), expected_hours
+                )
